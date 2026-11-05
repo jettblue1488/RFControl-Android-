@@ -37,4 +37,3 @@ jobs:
         with:
           name: RFControl-Android-APK
           path: app/build/outputs/apk/debug/*.apk
-
