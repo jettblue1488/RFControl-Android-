@@ -20,6 +20,21 @@ import org.robolectric.annotation.Config
 class MainActivityTest {
     private fun texts(v: View): List<TextView> = (if (v is TextView) listOf(v) else emptyList()) +
         if (v is ViewGroup) (0 until v.childCount).flatMap { texts(v.getChildAt(it)) } else emptyList()
+    @Test fun privacyShieldShowsHonestSystemControls() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        val activity = controller.get()
+        val root = activity.findViewById<View>(android.R.id.content)
+        val privacy = texts(root).filterIsInstance<Button>()
+            .first { it.text.toString().startsWith("Privacy Shield") }
+        privacy.performClick()
+        val dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+        assertNotNull(dialog)
+        assertTrue(dialog.isShowing)
+        assertTrue(dialog.findViewById<TextView>(android.R.id.message).text.contains("cannot disable"))
+        dialog.dismiss()
+        controller.pause().stop().destroy()
+    }
+
     @Test fun launchHistoryAndPermissionDenialWorkWithoutRadioHardware() {
         val app: android.app.Application = RuntimeEnvironment.getApplication()
         app.deleteDatabase("detections.db")
