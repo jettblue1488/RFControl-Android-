@@ -1,4 +1,3 @@
-
 name: Build RF Control APK
 
 on:
@@ -12,8 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
+    # Publishing the APK to GitHub Releases requires contents: write.
+    # Pull requests run the checks but never publish a release.
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout project
@@ -42,8 +43,34 @@ jobs:
             app/build/reports/tests/
             app/build/reports/lint-results-debug.html
 
-      - name: Upload APK
+      - name: Upload APK to Actions
         uses: actions/upload-artifact@v4
         with:
           name: RFControl-Android-APK
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Give APK a consistent download filename
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk_files=(app/build/outputs/apk/debug/*.apk)
+          test -f "${apk_files[0]}"
+          cp "${apk_files[0]}" RFControl-Android.apk
+
+      - name: Publish direct-download GitHub Release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view android-apk >/dev/null 2>&1; then
+            gh release upload android-apk RFControl-Android.apk --clobber
+          else
+            gh release create android-apk RFControl-Android.apk \
+              --title "RF Control — Android APK" \
+              --notes "Download RFControl-Android.apk and tap it on an Android 8+ phone to install RF Control. This is a debug-signed build from the main branch. A differently signed prior install may need uninstalling first, which deletes its locally saved history." \
+              --latest
+          fi
