@@ -41,6 +41,7 @@ class MainActivityTest {
         HistoryStore(app).withClosed { store ->
             val s = store.begin("BLE")
             store.record(s, "BLE", "AA:BB:CC:DD:EE:FF", "Test beacon", "advertisement", 1000, -60)
+            store.record(s, "BLE", "AA:BB:CC:DD:EE:FF", "Test beacon", "advertisement", 2000, -58)
         }
         shadowOf(app).denyPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
@@ -49,6 +50,14 @@ class MainActivityTest {
         fun click(title: String) { texts(root).filterIsInstance<Button>().first { it.text.toString() == title }.performClick() }
         click("History")
         assertTrue(texts(root).any { it.text.contains("Test beacon") && it.text.contains("#1") })
+        val result = texts(root).first { it.text.contains("Test beacon") && it.text.contains("#1") }.text.toString()
+        assertTrue(result.contains("Device ID (Bluetooth address): AA:BB:CC:DD:EE:FF"))
+        assertTrue(result.contains("Scan ID:"))
+        assertTrue(result.contains("First detected:"))
+        assertTrue(result.contains("Last detected:"))
+        assertTrue(result.contains("Readings: 2"))
+        assertTrue(result.contains("1 repeat(s)"))
+        assertEquals(1, texts(root).filter { it.text.contains("Test beacon") && it.text.contains("#1") }.size)
         click("Scan Bluetooth LE")
         assertTrue(texts(root).any { it.text.contains("Allow") })
         assertTrue(texts(root).any { it.text.contains("cannot establish exact distance or direction") })
