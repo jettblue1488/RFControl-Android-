@@ -1,4 +1,3 @@
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -9,11 +8,13 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.rfcontrol.app"
+        // Separate install from previously installed RF Control debug APKs.
+        // Keeps the old app and its on-device history intact.
+        applicationId = "com.kays.rfcontrol"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     compileOptions {
@@ -28,7 +29,7 @@ android {
     }
 }
 
- dependencies {
+dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
 }
