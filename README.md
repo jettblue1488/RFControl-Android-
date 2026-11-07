@@ -1,5 +1,15 @@
 # RF Control 1.1
 
+## Download and open on Android
+
+**[Tap here to download RF Control APK](https://github.com/jettblue1488/RFControl-Android-/releases/download/android-apk/RFControl-Android.apk)**
+
+This permanent link is updated by the GitHub Actions workflow whenever checks and the APK build succeed on `main`. If the direct link is not yet available, [check the build status](https://github.com/jettblue1488/RFControl-Android-/actions/workflows/build-apk.yml) or [open Releases](https://github.com/jettblue1488/RFControl-Android-/releases).
+
+On your Android phone: tap the APK link, open the downloaded `RFControl-Android.apk` from Downloads, approve installing from your browser/files app if Android asks, then tap **Install** and **Open**. After that, tap **RF Control** in your app drawer whenever you want to run it. This is a native Android app, not a website; a GitHub page cannot directly run it before installation.
+
+**Existing installation warning:** The downloadable APK is debug-signed. Builds from different GitHub Actions runners may use different signing keys. If Android says the package conflicts with an installed version, you may have to uninstall the old app before installing, **which deletes its stored scan history**. Back up anything you need first.
+
 Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
 
 - Tap **Scan Bluetooth LE** or **Scan Wi-Fi**. Grant Nearby devices for BLE on Android 12+, and precise Location for both scanners (BLE signal proximity uses location-related scan information). Enable system Bluetooth, Wi-Fi and Location as needed.
@@ -10,10 +20,6 @@ Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
 - Wi-Fi scan requests can be throttled by Android. Results arrive asynchronously; cached entries are labeled and preserve Android's original observation timestamp when available (otherwise explicitly labeled retrieval time). Dates display in the phone's local timezone.
 - History remains on the phone. The app has no Internet permission and sends no detections to a server.
 
-## Installing this debug APK
-
-Open `RFControl-1.1-debug.apk` on Android and allow installation from your download app if prompted. A previous debug build may use a different signing key; Android can reject an in-place update. In that case, uninstall the old build before installing this APK. Uninstalling removes that installation's saved data.
-
 ## Build and automated checks
 
 Java 17, Gradle 8.9, Android SDK 35:
@@ -22,7 +28,7 @@ Java 17, Gradle 8.9, Android SDK 35:
 gradle --no-daemon testDebugUnitTest lintDebug assembleDebug
 ```
 
-GitHub Actions runs the same checks and uploads the debug APK and reports. Robolectric tests cover API 28/35 launch, denied permissions, saved-history UI, SQLite persistence, numbering/deduplication, timestamps, deletion, invalid/stale RSSI, smoothing and monotonic beep timing. Radio behavior and audible volume still need testing on physical Android devices.
+GitHub Actions runs these checks, uploads the debug APK and reports as workflow artifacts, and publishes `RFControl-Android.apk` to the `android-apk` GitHub Release on successful main-branch builds. Robolectric tests cover API 28/35 launch, denied permissions, saved-history UI, SQLite persistence, numbering/deduplication, timestamps, deletion, invalid/stale RSSI, smoothing and monotonic beep timing. Radio behavior and audible volume still need testing on physical Android devices.
 
 ## Physical-device verification
 
