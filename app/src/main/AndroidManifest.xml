@@ -16,7 +16,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="Kay's RF Control"
+        android:label="Kay's RF Shield"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
 
