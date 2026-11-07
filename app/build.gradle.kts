@@ -8,13 +8,13 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // Separate install from previously installed RF Control debug APKs.
-        // Keeps the old app and its on-device history intact.
-        applicationId = "com.kays.rfcontrol"
+        // Fresh package ID avoids a signature conflict with earlier debug builds.
+        // Preserve old installs and their local history; this app starts fresh.
+        applicationId = "com.kays.rfcontrol.privacyshield"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
     }
 
     compileOptions {
