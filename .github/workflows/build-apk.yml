@@ -7,6 +7,12 @@ on:
     branches:
       - main
 
+# Serialize builds on the same branch so releases and the apk-download mirror
+# are not updated by two workflows at once.
+concurrency:
+  group: rfcontrol-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-24.04
