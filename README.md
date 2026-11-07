@@ -1,4 +1,4 @@
-# RF Control 1.1
+# Kay's RF Control 1.2
 
 ## Download and open on Android
 
@@ -6,11 +6,11 @@
 
 This permanent link is updated by the GitHub Actions workflow whenever checks and the APK build succeed on `main`. If the direct link is not yet available, [check the build status](https://github.com/jettblue1488/RFControl-Android-/actions/workflows/build-apk.yml) or [open Releases](https://github.com/jettblue1488/RFControl-Android-/releases).
 
-On your Android phone: tap the APK link, open the downloaded `RFControl-Android.apk` from Downloads, approve installing from your browser/files app if Android asks, then tap **Install** and **Open**. After that, tap **RF Control** in your app drawer whenever you want to run it. This is a native Android app, not a website; a GitHub page cannot directly run it before installation.
+On your Android phone: tap the APK link, open the downloaded `RFControl-Android.apk` from Downloads, approve installing from your browser/files app if Android asks, then tap **Install** and **Open**. After that, tap **Kay's RF Control** in your app drawer whenever you want to run it. This is a native Android app, not a website; a GitHub page cannot directly run it before installation.
 
-**Existing installation warning:** The downloadable APK is debug-signed. Builds from different GitHub Actions runners may use different signing keys. If Android says the package conflicts with an installed version, you may have to uninstall the old app before installing, **which deletes its stored scan history**. Back up anything you need first.
+**Package conflict fix (v1.2):** This APK now installs as **Kay's RF Control** using a new Android app ID (`com.kays.rfcontrol`), separate from the original `com.rfcontrol.app`. Your previous app and its history remain installed; the new app begins with its own empty history. No need to uninstall the old one. Future APK updates still require the same signing key; GitHub Actions debug builds may not share a signing key across builds. Avoid uninstalling a version with history you need.
 
-Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
+Version 1.2 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
 
 - Tap **Scan Bluetooth LE** or **Scan Wi-Fi**. Grant Nearby devices for BLE on Android 12+, and precise Location for both scanners (BLE signal proximity uses location-related scan information). Enable system Bluetooth, Wi-Fi and Location as needed.
 - Each scan gets a durable ID; devices are numbered in first-observed order within that scan. Repeated BLE advertisements update the same row with first/last timestamps and sample count. SQLite history survives closing the app and restarting the phone. History loads older rows on demand. Settings → Clear saved history deletes it after confirmation. Uninstalling/clearing app data also removes it. Android cloud backup is disabled.
