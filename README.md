@@ -1,4 +1,4 @@
-# Kay's RF Control 1.3
+# Kay's RF Shield 1.4
 
 ## Download and open on Android
 
@@ -6,11 +6,11 @@
 
 If the GitHub release link opens an error on `release-assets.githubusercontent.com`, use this **[alternate direct APK download](https://raw.githubusercontent.com/jettblue1488/RFControl-Android-/apk-download/RFControl-Android.apk)** instead. This alternative is hosted in the repository branch and does not use expiring release asset redirects. Both URLs lead to the APK that GitHub Actions publishes after a successful build on `main`. If Android blocks the installation, open the APK from Downloads and approve the normal browser/file-manager install prompt.\n\nThis permanent link is updated by the GitHub Actions workflow whenever checks and the APK build succeed on `main`. If the direct link is not yet available, [check the build status](https://github.com/jettblue1488/RFControl-Android-/actions/workflows/build-apk.yml) or [open Releases](https://github.com/jettblue1488/RFControl-Android-/releases).
 
-On your Android phone: tap the APK link, open the downloaded `RFControl-Android.apk` from Downloads, approve installing from your browser/files app if Android asks, then tap **Install** and **Open**. After that, tap **Kay's RF Control** in your app drawer whenever you want to run it. This is a native Android app, not a website; a GitHub page cannot directly run it before installation.
+On your Android phone: tap the APK link, open the downloaded `RFControl-Android.apk` from Downloads, approve installing from your browser/files app if Android asks, then tap **Install** and **Open**. After that, tap **Kay's RF Shield** in your app drawer whenever you want to run it. This is a native Android app, not a website; a GitHub page cannot directly run it before installation.
 
-**Package conflict fix (v1.2+):** This APK now installs as **Kay's RF Control** using a new Android app ID (`com.kays.rfcontrol`), separate from the original `com.rfcontrol.app`. Your previous app and its history remain installed; the new app begins with its own empty history. No need to uninstall the old one. Future APK updates still require the same signing key; GitHub Actions debug builds may not share a signing key across builds. Avoid uninstalling a version with history you need.
+**Package-signature conflict fix (v1.4):** This APK installs as **Kay's RF Shield** with its own Android package ID (`com.kays.rfcontrol.privacyshield`), separate from both `com.kays.rfcontrol` and `com.rfcontrol.app`. It will not replace the older apps, and you **do not need to uninstall them**. Your old detection history remains in those previous app installations; the Shield app starts with new, separate scan history. Future builds may still use different debug signing keys and may not update *this* package in place. A stable private release-signing key is needed for seamless future upgrades.
 
-Version 1.3 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
+Version 1.4 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
 
 - Tap **Scan Bluetooth LE** or **Scan Wi-Fi**. Grant Nearby devices for BLE on Android 12+, and precise Location for both scanners (BLE signal proximity uses location-related scan information). Enable system Bluetooth, Wi-Fi and Location as needed.
 - Each scan gets a durable ID; devices are numbered in first-observed order within that scan. Repeated BLE advertisements update the same row with first/last timestamps and sample count. SQLite history survives closing the app and restarting the phone. History loads older rows on demand. Settings → Clear saved history deletes it after confirmation. Uninstalling/clearing app data also removes it. Android cloud backup is disabled.
