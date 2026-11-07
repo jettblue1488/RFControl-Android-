@@ -74,3 +74,23 @@ jobs:
               --notes "Download RFControl-Android.apk and tap it on an Android 8+ phone to install RF Control. This is a debug-signed build from the main branch. A differently signed prior install may need uninstalling first, which deletes its locally saved history." \
               --latest
           fi
+
+      # The GitHub Releases asset redirects to release-assets.githubusercontent.com.
+      # Mirror the APK in a dedicated branch so users whose network blocks that
+      # host can download from raw.githubusercontent.com instead.
+      - name: Publish non-expiring raw APK mirror
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp RFControl-Android.apk "$RUNNER_TEMP/RFControl-Android.apk"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin apk-download
+          git switch -C apk-download origin/apk-download
+          cp "$RUNNER_TEMP/RFControl-Android.apk" RFControl-Android.apk
+          git add RFControl-Android.apk
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish latest Android APK from ${GITHUB_SHA}"
+            git push origin HEAD:apk-download
+          fi
