@@ -1,4 +1,4 @@
-# Kay's RF Shield 1.4
+# Kay's RF Shield 1.5
 
 ## Download and open on Android
 
@@ -10,10 +10,10 @@ On your Android phone: tap the APK link, open the downloaded `RFControl-Android.
 
 **Package-signature conflict fix (v1.4):** This APK installs as **Kay's RF Shield** with its own Android package ID (`com.kays.rfcontrol.privacyshield`), separate from both `com.kays.rfcontrol` and `com.rfcontrol.app`. It will not replace the older apps, and you **do not need to uninstall them**. Your old detection history remains in those previous app installations; the Shield app starts with new, separate scan history. Future builds may still use different debug signing keys and may not update *this* package in place. A stable private release-signing key is needed for seamless future upgrades.
 
-Version 1.4 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
+Version 1.5 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
 
 - Tap **Scan Bluetooth LE** or **Scan Wi-Fi**. Grant Nearby devices for BLE on Android 12+, and precise Location for both scanners (BLE signal proximity uses location-related scan information). Enable system Bluetooth, Wi-Fi and Location as needed.
-- Each scan gets a durable ID; devices are numbered in first-observed order within that scan. Repeated BLE advertisements update the same row with first/last timestamps and sample count. SQLite history survives closing the app and restarting the phone. History loads older rows on demand. Settings → Clear saved history deletes it after confirmation. Uninstalling/clearing app data also removes it. Android cloud backup is disabled.
+- Every result explicitly shows the scan ID and the reported **Device ID** (Bluetooth LE address or Wi-Fi BSSID when available). If a Wi-Fi BSSID is unavailable, the app labels it unavailable instead of inventing a hardware ID. The same reported identifier is grouped into one result within a scan, with first/last detection times and a count of repeat readings. Bluetooth IDs may be randomized or change over time, so there is no guarantee of a permanent physical identifier.\n- Each scan gets a durable ID; devices are numbered in first-observed order within that scan. Repeated BLE advertisements update the same row with first/last timestamps and sample count. SQLite history survives closing the app and restarting the phone. History loads older rows on demand. Settings → Clear saved history deletes it after confirmation. Uninstalling/clearing app data also removes it. Android cloud backup is disabled.
 - Available names, BLE addresses, advertised manufacturer numeric IDs/service UUIDs, Wi-Fi SSIDs/BSSIDs, frequency, capabilities and RSSI are shown. Unavailable names remain unknown. Randomized addresses may change; names and IDs do not establish a device's owner, exact model, identity or connection status. Wi-Fi scanning lists access points, not their client devices.
 - Tap a BLE row in live results or history to select its finder. It waits for a fresh advertisement, smooths RSSI, and beeps every 250–3000 ms (stronger = faster). The bar shows relative signal strength. Use media volume. Stop finder sound, stop scanning, leave the app or lock the screen to silence it. Sound pauses after 5 seconds without a valid signal. BLE scans end after 2 minutes; restart to continue. Only advertising Bluetooth LE devices are supported, not every Bluetooth device.
 - RSSI **cannot establish exact distance or direction**. Walls, bodies, interference and transmitter power affect it. There are no distance estimates, directional maps, or claims that a device is on your body or connected to you.
