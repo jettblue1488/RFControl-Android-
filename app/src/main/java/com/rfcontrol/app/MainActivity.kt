@@ -112,7 +112,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 16, 24, 16)
         }
-        root.addView(TextView(this).apply { text = "RF Control • Detection & Finder"; textSize = 21f })
+        root.addView(TextView(this).apply { text = "Kay's RF Shield • Detection & Finder"; textSize = 21f })
         val controls = LinearLayout(this)
         fun button(parent: LinearLayout, title: String, action: () -> Unit): Button = Button(this).apply {
             text = title; setOnClickListener { action() }; parent.addView(this, LinearLayout.LayoutParams(0, -2, 1f))
