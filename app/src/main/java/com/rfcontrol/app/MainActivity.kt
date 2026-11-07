@@ -281,6 +281,29 @@ class MainActivity : Activity() {
             render()
         } catch (_: SecurityException) { status.text = "Wi-Fi permission was removed or Location is disabled. Check Settings." }
     }
+    private fun readableDevice(row: Detection): String {
+        if (row.kind != "BLE") return row.name.ifBlank { "Wi-Fi network" }
+        val ids = Regex("0x[0-9A-Fa-f]{4}").findAll(row.details.substringBefore("; services:")).map { it.value.uppercase() }.toSet()
+        val brand = when {
+            "0X004C" in ids -> "Apple"
+            "0X0075" in ids -> "Samsung"
+            "0X0006" in ids -> "Microsoft"
+            "0X00E0" in ids -> "Google"
+            "0X000F" in ids -> "Broadcom"
+            else -> "Unknown brand"
+        }
+        val services = row.details.substringAfter("; services:", "")
+        val type = when {
+            services.contains("00001812", true) -> "Keyboard / mouse (possible)"
+            services.contains("0000180F", true) -> "Battery-powered accessory"
+            services.contains("0000180D", true) -> "Heart-rate device"
+            services.contains("00001809", true) -> "Thermometer"
+            else -> "Unknown device"
+        }
+        val name = row.name.takeUnless { it.isBlank() || it.equals("Name unavailable", true) }
+        return if (name != null) "$brand — $name" else "$brand — $type"
+    }
+
     private fun date(time: Long) = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(Date(time))
     private fun render() {
         lastRender = SystemClock.elapsedRealtime()
@@ -288,11 +311,11 @@ class MainActivity : Activity() {
         val rows = if (showingHistory) history.rows(limit = historyLimit) else visibleSession?.let { history.rows(it, 10000) }.orEmpty()
         list.addView(TextView(this).apply {
             text = if (showingHistory) "Saved history • newest scans first • local time (${java.util.TimeZone.getDefault().id})\nTap a saved BLE entry to search again."
-                else "Current scan • ${rows.size} detected entries • tap BLE device to find"
+                else "Scan ${visibleSession ?: ""} • ${rows.size} unique devices found • ${rows.firstOrNull()?.first?.let { date(it) } ?: "waiting for devices"}\nTap a Bluetooth device to find its signal."
         })
         if (rows.isEmpty()) list.addView(TextView(this).apply { text = "No detections yet. Start a scan, or open History for earlier scans." })
         rows.forEach { row ->
-            val text = "Scan ${row.session} • #${row.number} • ${row.kind}\n${row.name}\nID: ${row.identifier}\n${Signal.label(row.rssi)} • ${row.rssi} dBm\nFirst: ${date(row.first)}\nLast: ${date(row.last)} • ${row.samples} sample(s)\n${row.details}"
+            val text = "#${row.number} • ${readableDevice(row)}\n${Signal.label(row.rssi)} • ${row.rssi} dBm\nDetected: ${date(row.first)}"
             val view: TextView = if (row.kind == "BLE") Button(this).apply { setOnClickListener { select(row) }; isAllCaps = false } else TextView(this)
             view.text = text; view.textSize = 14f; view.setPadding(8, 12, 8, 12)
             list.addView(view)
