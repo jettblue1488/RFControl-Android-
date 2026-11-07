@@ -136,6 +136,11 @@ class MainActivity : Activity() {
             }.show()
         }
         root.addView(navigation)
+        root.addView(Button(this).apply {
+            text = "Privacy Shield • Block tracker connections"
+            setOnClickListener { showPrivacyShield() }
+            contentDescription = "Privacy Shield. Review Bluetooth, tracker alerts, and location privacy controls."
+        })
         root.addView(TextView(this).apply { text = Signal.WARNING; textSize = 13f })
         status = TextView(this).apply { text = "Ready. Scans run while this screen is open. Names and identifiers may be missing or randomized." }
         root.addView(status)
@@ -161,6 +166,45 @@ class MainActivity : Activity() {
         scroll.requestApplyInsets()
         render()
         updateFinder()
+    }
+
+    private fun showPrivacyShield() {
+        AlertDialog.Builder(this)
+            .setTitle("Privacy Shield")
+            .setMessage(
+                "Protect your phone using Android's system controls. Turning off your phone's Bluetooth " +
+                "stops its Bluetooth connections, but cannot disable an independent GPS tracker or a " +
+                "Bluetooth tag communicating through other phones. This app does not jam, scramble or " +
+                "control nearby devices.\n\n" +
+                "For suspected tracking, use Android's Unknown tracker alerts and Scan now. " +
+                "Keep alerts enabled so Android can notify you about compatible tags traveling with you."
+            )
+            .setItems(arrayOf(
+                "Bluetooth settings — turn off or forget devices",
+                "Unknown tracker alerts — open Settings for Scan now",
+                "Location settings — review location access",
+                "App permissions — review RF Control permissions"
+            )) { _, which ->
+                when (which) {
+                    0 -> startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                    1 -> AlertDialog.Builder(this)
+                        .setTitle("Find unknown trackers")
+                        .setMessage(
+                            "In Settings, open Safety & emergency > Unknown tracker alerts > Scan now. " +
+                            "On some phones the path is Google > Personal & device safety > Unknown tracker alerts. " +
+                            "Not all GPS trackers broadcast Bluetooth signals or appear in a scan."
+                        )
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Open Settings") { _, _ ->
+                            startActivity(Intent(Settings.ACTION_SETTINGS))
+                        }.show()
+                    2 -> startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    3 -> startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        android.net.Uri.parse("package:$packageName")))
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
     }
 
     private fun has(permission: String) = checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

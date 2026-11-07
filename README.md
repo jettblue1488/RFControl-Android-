@@ -1,4 +1,4 @@
-# Kay's RF Control 1.2
+# Kay's RF Control 1.3
 
 ## Download and open on Android
 
@@ -8,9 +8,9 @@ This permanent link is updated by the GitHub Actions workflow whenever checks an
 
 On your Android phone: tap the APK link, open the downloaded `RFControl-Android.apk` from Downloads, approve installing from your browser/files app if Android asks, then tap **Install** and **Open**. After that, tap **Kay's RF Control** in your app drawer whenever you want to run it. This is a native Android app, not a website; a GitHub page cannot directly run it before installation.
 
-**Package conflict fix (v1.2):** This APK now installs as **Kay's RF Control** using a new Android app ID (`com.kays.rfcontrol`), separate from the original `com.rfcontrol.app`. Your previous app and its history remain installed; the new app begins with its own empty history. No need to uninstall the old one. Future APK updates still require the same signing key; GitHub Actions debug builds may not share a signing key across builds. Avoid uninstalling a version with history you need.
+**Package conflict fix (v1.2+):** This APK now installs as **Kay's RF Control** using a new Android app ID (`com.kays.rfcontrol`), separate from the original `com.rfcontrol.app`. Your previous app and its history remain installed; the new app begins with its own empty history. No need to uninstall the old one. Future APK updates still require the same signing key; GitHub Actions debug builds may not share a signing key across builds. Avoid uninstalling a version with history you need.
 
-Version 1.2 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
+Version 1.3 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point scanner.
 
 - Tap **Scan Bluetooth LE** or **Scan Wi-Fi**. Grant Nearby devices for BLE on Android 12+, and precise Location for both scanners (BLE signal proximity uses location-related scan information). Enable system Bluetooth, Wi-Fi and Location as needed.
 - Each scan gets a durable ID; devices are numbered in first-observed order within that scan. Repeated BLE advertisements update the same row with first/last timestamps and sample count. SQLite history survives closing the app and restarting the phone. History loads older rows on demand. Settings → Clear saved history deletes it after confirmation. Uninstalling/clearing app data also removes it. Android cloud backup is disabled.
@@ -19,6 +19,14 @@ Version 1.2 · Native Android 8+ foreground Bluetooth LE and Wi-Fi access-point 
 - RSSI **cannot establish exact distance or direction**. Walls, bodies, interference and transmitter power affect it. There are no distance estimates, directional maps, or claims that a device is on your body or connected to you.
 - Wi-Fi scan requests can be throttled by Android. Results arrive asynchronously; cached entries are labeled and preserve Android's original observation timestamp when available (otherwise explicitly labeled retrieval time). Dates display in the phone's local timezone.
 - History remains on the phone. The app has no Internet permission and sends no detections to a server.
+
+## Privacy Shield — protective controls, not interference
+
+Tap **Privacy Shield • Block tracker connections** for shortcuts to Android Bluetooth settings, Location settings, app permissions, and guidance for **Unknown tracker alerts > Scan now** in Safety & emergency. Turning off Bluetooth on **your phone** stops its Bluetooth connections; Android 13+ does not permit ordinary apps to silently switch Bluetooth off. In Bluetooth settings, you can forget previously paired devices. Android does not provide a public app API to force unrelated nearby devices to power off or unpair.
+
+A Bluetooth tracker or dedicated GPS tracker may work without connecting directly to your phone. A Bluetooth tag may use a network of *other* phones and continue reporting when your Bluetooth is off. Turning your phone's Location setting off does not disable a physical tracker; it may also reduce the usefulness of automated unknown-tracker alerts. To check compatible unknown tags, keep alerts on and run Android's Scan now. An empty scan does **not** prove the absence of every tracker.
+
+This app does not scramble radio signals, spoof tracker reports, take control of other people's devices, or prevent independently powered GPS trackers from operating. It only offers controls and detection for the user's own device.
 
 ## Build and automated checks
 
