@@ -349,17 +349,38 @@ class MainActivity : Activity() {
     }
 
     private fun date(time: Long) = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(Date(time))
+    private fun deviceIdentifier(row: Detection): String = when {
+        row.identifier.startsWith("Identifier unavailable:") -> "Device ID unavailable (Wi-Fi BSSID not reported)"
+        row.kind == "BLE" -> "Device ID (Bluetooth address): ${row.identifier}"
+        row.kind == "Wi-Fi" -> "Device ID (Wi-Fi BSSID): ${row.identifier}"
+        else -> "Device ID: ${row.identifier}"
+    }
+    private fun duplicateSummary(row: Detection): String {
+        val repeated = (row.samples - 1).coerceAtLeast(0)
+        return if (repeated == 0) "Readings: 1 • no repeat readings for this ID"
+            else "Readings: ${row.samples} • ${repeated} repeat(s) with the same ID grouped into this result"
+    }
     private fun render() {
         lastRender = SystemClock.elapsedRealtime()
         list.removeAllViews()
         val rows = if (showingHistory) history.rows(limit = historyLimit) else visibleSession?.let { history.rows(it, 10000) }.orEmpty()
         list.addView(TextView(this).apply {
             text = if (showingHistory) "Saved history • newest scans first • local time (${java.util.TimeZone.getDefault().id})\nTap a saved BLE entry to search again."
-                else "Scan ${visibleSession ?: ""} • ${rows.size} unique devices found • ${rows.firstOrNull()?.first?.let { date(it) } ?: "waiting for devices"}\nTap a Bluetooth device to find its signal."
+                else "Scan ${visibleSession ?: ""} • ${rows.size} distinct reported IDs/results • ${rows.firstOrNull()?.first?.let { date(it) } ?: "waiting for devices"}\nTap a Bluetooth device to find its signal."
+        })
+        list.addView(TextView(this).apply {
+            text = "Matching IDs within one scan are grouped. Bluetooth addresses can change or be randomized; IDs are not permanent serial numbers and cannot prove two results are different physical devices."
+            textSize = 12f
         })
         if (rows.isEmpty()) list.addView(TextView(this).apply { text = "No detections yet. Start a scan, or open History for earlier scans." })
         rows.forEach { row ->
-            val text = "#${row.number} • ${readableDevice(row)}\n${Signal.label(row.rssi)} • ${row.rssi} dBm\nDetected: ${date(row.first)}"
+            val text = "#${row.number} • ${readableDevice(row)}\n" +
+                "Scan ID: ${row.session} • ${row.kind}\n" +
+                "${deviceIdentifier(row)}\n" +
+                "${Signal.label(row.rssi)} • ${row.rssi} dBm\n" +
+                "First detected: ${date(row.first)}\n" +
+                "Last detected: ${date(row.last)}\n" +
+                duplicateSummary(row)
             val view: TextView = if (row.kind == "BLE") Button(this).apply { setOnClickListener { select(row) }; isAllCaps = false } else TextView(this)
             view.text = text; view.textSize = 14f; view.setPadding(8, 12, 8, 12)
             list.addView(view)
