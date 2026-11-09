@@ -120,6 +120,11 @@ class MainActivity : Activity() {
         bluetoothButton = button(controls, "Scan Bluetooth LE") { if (scanning) { stopBluetooth(); status.text = "Bluetooth scan stopped. History saved." } else startBluetooth() }
         button(controls, "Scan Wi-Fi") { scanWifi() }
         root.addView(controls)
+        root.addView(Button(this).apply {
+            text = "Rescan nearby Wi-Fi"
+            contentDescription = "Start another Wi-Fi scan and save a new timestamped scan session"
+            setOnClickListener { scanWifi() }
+        })
         val navigation = LinearLayout(this)
         button(navigation, "Live results") { showingHistory = false; render() }
         button(navigation, "History") { showingHistory = true; historyLimit = 100; render() }
@@ -285,7 +290,7 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     private fun scanWifi() {
         if (!permissions(false)) return
-        if (wifiSession != null) { status.text = "A Wi-Fi scan is already pending."; return }
+        if (wifiSession != null) { status.text = "Wi-Fi scan already in progress. Wait for results before rescanning."; return }
         val wifi = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
         try {
             if (!wifi.isWifiEnabled) { status.text = "Enable Wi-Fi and Location in Settings, then scan again."; return }
@@ -293,7 +298,7 @@ class MainActivity : Activity() {
             visibleSession = wifiSession; showingHistory = false
             wifiRequestedAt = SystemClock.elapsedRealtime()
             if (wifi.startScan()) {
-                status.text = "Waiting for Wi-Fi scan results. Android limits scan frequency."
+                status.text = "Rescanning nearby Wi-Fi. Android limits scan frequency; results may be cached."
                 handler.postDelayed(wifiTimeout, 15_000)
             } else receiveWifi(false)
             render()
