@@ -120,6 +120,11 @@ class MainActivity : Activity() {
         bluetoothButton = button(controls, "Scan Bluetooth LE") { if (scanning) { stopBluetooth(); status.text = "Bluetooth scan stopped. History saved." } else startBluetooth() }
         button(controls, "Scan Wi-Fi") { scanWifi() }
         root.addView(controls)
+        root.addView(Button(this).apply {
+            text = "Rescan nearby Wi-Fi"
+            contentDescription = "Start another Wi-Fi scan and save a new timestamped scan session"
+            setOnClickListener { scanWifi() }
+        })
         val navigation = LinearLayout(this)
         button(navigation, "Live results") { showingHistory = false; render() }
         button(navigation, "History") { showingHistory = true; historyLimit = 100; render() }
@@ -285,7 +290,7 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     private fun scanWifi() {
         if (!permissions(false)) return
-        if (wifiSession != null) { status.text = "A Wi-Fi scan is already pending."; return }
+        if (wifiSession != null) { status.text = "Wi-Fi scan already in progress. Wait for results before rescanning."; return }
         val wifi = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
         try {
             if (!wifi.isWifiEnabled) { status.text = "Enable Wi-Fi and Location in Settings, then scan again."; return }
@@ -293,7 +298,7 @@ class MainActivity : Activity() {
             visibleSession = wifiSession; showingHistory = false
             wifiRequestedAt = SystemClock.elapsedRealtime()
             if (wifi.startScan()) {
-                status.text = "Waiting for Wi-Fi scan results. Android limits scan frequency."
+                status.text = "Rescanning nearby Wi-Fi. Android limits scan frequency; results may be cached."
                 handler.postDelayed(wifiTimeout, 15_000)
             } else receiveWifi(false)
             render()
@@ -325,6 +330,45 @@ class MainActivity : Activity() {
             render()
         } catch (_: SecurityException) { status.text = "Wi-Fi permission was removed or Location is disabled. Check Settings." }
     }
+    private fun showWifiDetails(row: Detection) {
+        val parts = row.details.split(";").map { it.trim() }
+        val frequency = parts.firstOrNull().orEmpty()
+        val security = parts.getOrNull(1).orEmpty().ifBlank { "Not reported" }
+        val observation = parts.drop(2).joinToString("; ")
+        val name = row.name.ifBlank { "Hidden or unnamed Wi-Fi network" }
+        val band = frequency.substringBefore(" ").toIntOrNull()?.let {
+            when (it) {
+                in 2400..2500 -> "2.4 GHz"
+                in 4900..5900 -> "5 GHz"
+                in 5925..7125 -> "6 GHz"
+                else -> "Other / unknown"
+            }
+        } ?: "Unknown"
+        val possibleType = when {
+            name.startsWith("DIRECT-", true) -> "Wi-Fi Direct device (possibly a printer)"
+            name.contains("extender", true) -> "Possible Wi-Fi range extender"
+            else -> "Wi-Fi access point; hardware type unverified"
+        }
+        val message = "Network name (SSID): $name\\n" +
+            "${deviceIdentifier(row)}\\n" +
+            "Possible type: $possibleType\\n" +
+            "Radio band: $band ($frequency)\\n" +
+            "Advertised security: $security\\n" +
+            "Signal: ${row.rssi} dBm (${Signal.label(row.rssi)})\\n" +
+            "First observed: ${date(row.first)}\\nLast observed: ${date(row.last)}\\n" +
+            "${duplicateSummary(row)}\\n$observation\\n\\n" +
+            "A BSSID identifies an access point radio, not its owner. Signal strength cannot establish exact distance. " +
+            "Android may return cached scans or omit some networks."
+        AlertDialog.Builder(this).setTitle("Wi-Fi network details")
+            .setMessage(message)
+            .setNeutralButton("Copy details") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Wi-Fi details", message))
+            }
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
     private fun readableDevice(row: Detection): String {
         if (row.kind != "BLE") return row.name.ifBlank { "Wi-Fi network" }
         val ids = Regex("0x[0-9A-Fa-f]{4}").findAll(row.details.substringBefore("; services:")).map { it.value.uppercase() }.toSet()
@@ -366,7 +410,7 @@ class MainActivity : Activity() {
         val rows = if (showingHistory) history.rows(limit = historyLimit) else visibleSession?.let { history.rows(it, 10000) }.orEmpty()
         list.addView(TextView(this).apply {
             text = if (showingHistory) "Saved history • newest scans first • local time (${java.util.TimeZone.getDefault().id})\nTap a saved BLE entry to search again."
-                else "Scan ${visibleSession ?: ""} • ${rows.size} distinct reported IDs/results • ${rows.firstOrNull()?.first?.let { date(it) } ?: "waiting for devices"}\nTap a Bluetooth device to find its signal."
+                else "Scan ${visibleSession ?: ""} • ${rows.size} distinct reported IDs/results • ${rows.firstOrNull()?.first?.let { date(it) } ?: "waiting for devices"}\nTap Wi-Fi for network details, or Bluetooth for its signal finder."
         })
         list.addView(TextView(this).apply {
             text = "Matching IDs within one scan are grouped. Bluetooth addresses can change or be randomized; IDs are not permanent serial numbers and cannot prove two results are different physical devices."
@@ -381,7 +425,12 @@ class MainActivity : Activity() {
                 "First detected: ${date(row.first)}\n" +
                 "Last detected: ${date(row.last)}\n" +
                 duplicateSummary(row)
-            val view: TextView = if (row.kind == "BLE") Button(this).apply { setOnClickListener { select(row) }; isAllCaps = false } else TextView(this)
+            val view: TextView = Button(this).apply {
+                isAllCaps = false
+                setOnClickListener {
+                    if (row.kind == "BLE") select(row) else if (row.kind == "Wi-Fi") showWifiDetails(row)
+                }
+            }
             view.text = text; view.textSize = 14f; view.setPadding(8, 12, 8, 12)
             list.addView(view)
         }
