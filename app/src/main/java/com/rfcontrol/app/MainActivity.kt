@@ -142,6 +142,11 @@ class MainActivity : Activity() {
         }
         root.addView(navigation)
         root.addView(Button(this).apply {
+            text = "Camera Guard • Review Spectrum connected devices"
+            contentDescription = "Open camera review and manual block guidance for Spectrum Wi-Fi"
+            setOnClickListener { startActivity(Intent(this@MainActivity, CameraGuardActivity::class.java)) }
+        })
+        root.addView(Button(this).apply {
             text = "Privacy Shield • Block tracker connections"
             setOnClickListener { showPrivacyShield() }
             contentDescription = "Privacy Shield. Review Bluetooth, tracker alerts, and location privacy controls."
