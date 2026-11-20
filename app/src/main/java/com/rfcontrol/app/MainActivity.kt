@@ -17,6 +17,7 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.wifi.WifiManager
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -56,6 +57,8 @@ class MainActivity : Activity() {
     private var nextBeep = 0L
     private var tone: ToneGenerator? = null
     private var wifiSession: Long? = null
+    private var pendingWifiPermission = false
+    private var resultFilter = "All"
     private var wifiRequestedAt = 0L
     private var receiverRegistered = false
     private var lastRender = 0L
@@ -120,6 +123,11 @@ class MainActivity : Activity() {
         bluetoothButton = button(controls, "Scan Bluetooth LE") { if (scanning) { stopBluetooth(); status.text = "Bluetooth scan stopped. History saved." } else startBluetooth() }
         button(controls, "Scan Wi-Fi") { scanWifi() }
         root.addView(controls)
+        val filters = LinearLayout(this)
+        button(filters, "Wi-Fi results") { resultFilter = "Wi-Fi"; showingHistory = false; render() }
+        button(filters, "Bluetooth results") { resultFilter = "BLE"; showingHistory = false; render() }
+        button(filters, "All results") { resultFilter = "All"; render() }
+        root.addView(filters)
         root.addView(Button(this).apply {
             text = "Rescan nearby Wi-Fi"
             contentDescription = "Start another Wi-Fi scan and save a new timestamped scan session"
@@ -223,9 +231,18 @@ class MainActivity : Activity() {
             else if (Build.VERSION.SDK_INT >= 31) arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
             else arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         if (needed.all { has(it) }) return true
+        pendingWifiPermission = !bluetooth
         requestPermissions(needed, 100)
         status.text = "Allow ${if (bluetooth && Build.VERSION.SDK_INT >= 31) "Nearby devices and precise Location" else "precise Location"}, then tap Scan again. Location services may also need to be enabled."
         return false
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 100 && pendingWifiPermission) {
+            pendingWifiPermission = false
+            if (has(Manifest.permission.ACCESS_FINE_LOCATION)) scanWifi()
+            else status.text = "Wi-Fi blocked: allow Precise location in app permissions."
+        }
     }
     private fun startBluetooth() {
         if (!permissions(true)) return
@@ -235,6 +252,7 @@ class MainActivity : Activity() {
             if (available == null) { status.text = "Bluetooth LE unavailable or Bluetooth disabled. Enable Bluetooth in Settings."; return }
             scanner = available
             bleSession = history.begin("BLE")
+            resultFilter = "BLE"
             visibleSession = bleSession
             showingHistory = false
             scanning = true
@@ -294,7 +312,14 @@ class MainActivity : Activity() {
 
     @Suppress("DEPRECATION")
     private fun scanWifi() {
+        resultFilter = "Wi-Fi"
         if (!permissions(false)) return
+        val location = getSystemService(LOCATION_SERVICE) as LocationManager
+        if (!location.isLocationEnabled) {
+            status.text = "Wi-Fi scan blocked: enable Android Location services."
+            render()
+            return
+        }
         if (wifiSession != null) { status.text = "Wi-Fi scan already in progress. Wait for results before rescanning."; return }
         val wifi = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
         try {
@@ -329,7 +354,7 @@ class MainActivity : Activity() {
                 history.record(session, "Wi-Fi", network.BSSID ?: "Identifier unavailable: ${network.SSID}/${network.frequency}", network.SSID.orEmpty(),
                     "${network.frequency} MHz; ${network.capabilities}; ${if (fresh) "fresh result" else "CACHED result"}${if (!validTime) "; observation time unavailable, shown time is retrieval" else ""}", seenAt, network.level)
             }
-            status.text = if (results.isEmpty()) "No Wi-Fi results. Enable Location and Wi-Fi; Android may throttle scans."
+            status.text = if (results.isEmpty()) "No Wi-Fi results returned. Check Wi-Fi, Precise location, Location services, or scan throttling."
                 else if (cached || !updated) "Wi-Fi results saved. Cached readings are marked with their original observation time when available. Android may throttle scans."
                 else "Fresh Wi-Fi results saved. These are access points, not a list of connected client devices."
             render()
@@ -412,7 +437,8 @@ class MainActivity : Activity() {
     private fun render() {
         lastRender = SystemClock.elapsedRealtime()
         list.removeAllViews()
-        val rows = if (showingHistory) history.rows(limit = historyLimit) else visibleSession?.let { history.rows(it, 10000) }.orEmpty()
+        val allRows = if (showingHistory) history.rows(limit = historyLimit) else visibleSession?.let { history.rows(it, 10000) }.orEmpty()
+        val rows = if (resultFilter == "All") allRows else allRows.filter { it.kind == resultFilter }
         list.addView(TextView(this).apply {
             text = if (showingHistory) "Saved history • newest scans first • local time (${java.util.TimeZone.getDefault().id})\nTap a saved BLE entry to search again."
                 else "Scan ${visibleSession ?: ""} • ${rows.size} distinct reported IDs/results • ${rows.firstOrNull()?.first?.let { date(it) } ?: "waiting for devices"}\nTap Wi-Fi for network details, or Bluetooth for its signal finder."
