@@ -315,7 +315,7 @@ class MainActivity : Activity() {
         resultFilter = "Wi-Fi"
         if (!permissions(false)) return
         val location = getSystemService(LOCATION_SERVICE) as LocationManager
-        if (!location.isLocationEnabled) {
+        if (!(if (Build.VERSION.SDK_INT >= 28) location.isLocationEnabled else location.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || location.isProviderEnabled(LocationManager.GPS_PROVIDER))) {
             status.text = "Wi-Fi scan blocked: enable Android Location services."
             render()
             return
